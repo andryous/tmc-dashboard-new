@@ -19,6 +19,7 @@ import { getCustomers } from "@/services/personService";
 import ArchiveCustomerDialog from "@/components/customers/ArchiveCustomerDialog";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function Customers() {
   const [customers, setCustomers] = useState<Person[]>([]);
@@ -69,7 +70,7 @@ export default function Customers() {
   async function handleArchive(customerId: number) {
     try {
       const response = await fetch(
-        `http://localhost:8088/api/persons/${customerId}`,
+        `${API_BASE_URL}/api/persons/${customerId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

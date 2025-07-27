@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/api";
 import type { Order } from "@/types/order";
 import { toast } from "sonner";
 
@@ -9,7 +10,7 @@ export async function getOrders(): Promise<Order[]> {
 // Temporarily disabled delay while testing
 // await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const response = await fetch("http://localhost:8088/api/orders");
+    const response = await fetch(`${API_BASE_URL}/api/orders`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch orders from backend");

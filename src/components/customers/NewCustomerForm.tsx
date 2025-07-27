@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/api";
 
 // Props definition
 type Props = {
@@ -79,11 +80,14 @@ export default function NewCustomerForm({
     }
 
     const isEditing = !!newCustomer && !!customerId;
-    const url = `http://localhost:8088/api/persons${
+    const url = `${API_BASE_URL}/api/persons${
       isEditing ? `/${customerId}` : ""
     }`;
     const method = isEditing ? "PUT" : "POST";
-
+    if (isEditing && !customerId) {
+      toast.error("Customer ID is required for updates.");
+      return;
+    }
     const response = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },

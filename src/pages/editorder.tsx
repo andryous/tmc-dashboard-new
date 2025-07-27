@@ -13,6 +13,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { API_BASE_URL } from "@/lib/api";
 
 // Page to edit an existing order
 export default function EditOrder() {
@@ -40,7 +41,7 @@ export default function EditOrder() {
 
   // Fetch the list of consultants when component mounts
   useEffect(() => {
-    fetch("http://localhost:8088/api/persons/by-role/CONSULTANT")
+    fetch(`${API_BASE_URL}/api/persons/by-role/CONSULTANT`)
       .then((res) => res.json()) // Parse JSON response
       .then(setConsultants) // Save consultants to local state
       .catch(
@@ -54,7 +55,7 @@ export default function EditOrder() {
   useEffect(() => {
     async function fetchOrder() {
       try {
-        const response = await fetch(`http://localhost:8088/api/orders/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/orders/${id}`);
         const data = await response.json();
 
         // Populate form fields with existing values
@@ -100,7 +101,7 @@ export default function EditOrder() {
         });
       }
 
-      const response = await fetch(`http://localhost:8088/api/orders/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

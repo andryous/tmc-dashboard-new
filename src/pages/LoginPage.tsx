@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8088/api/persons/login", {
+      const response = await fetch(`${API_BASE_URL}/api/persons/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

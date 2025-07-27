@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { Order } from "@/types/order";
+import { API_BASE_URL } from "@/lib/api";
 
 type Props = {
   order: Order | null; // Order to delete
@@ -27,12 +28,9 @@ export default function DeleteOrderDialog({
     if (!order) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:8088/api/orders/${order.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/orders/${order.id}`, {
+        method: "DELETE",
+      });
 
       if (response.ok) {
         toast.success("Order deleted successfully");

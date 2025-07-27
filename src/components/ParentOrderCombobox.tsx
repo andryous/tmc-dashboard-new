@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 // Type for the parent order
 type Order = {
@@ -56,7 +57,7 @@ export function ParentOrderCombobox({
   // Fetch MOVING orders from the backend only when needed
   useEffect(() => {
     if (serviceType === "CLEANING" || serviceType === "PACKING") {
-      fetch("http://localhost:8088/api/orders/by-service-type/MOVING")
+      fetch(`${API_BASE_URL}/api/orders/by-service-type/MOVING`)
         .then((res) => res.json())
         .then((data) => setOrders(data));
     }

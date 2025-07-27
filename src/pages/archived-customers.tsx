@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import type { Person } from "@/types/person";
 import { getArchivedCustomers } from "@/services/personService";
+import { API_BASE_URL } from "@/lib/api";
 
 // Page to display only archived customers
 export default function ArchivedCustomers() {
@@ -44,7 +45,7 @@ export default function ArchivedCustomers() {
   async function handleRestore(customerId: number) {
     try {
       const response = await fetch(
-        `http://localhost:8088/api/persons/${customerId}`,
+        `${API_BASE_URL}/api/persons/${customerId}`,
         {
           method: "PATCH",
           headers: {

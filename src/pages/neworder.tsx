@@ -17,6 +17,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function NewOrder() {
   const [fromAddress, setFromAddress] = useState("");
@@ -48,14 +49,14 @@ export default function NewOrder() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:8088/api/persons/by-role/CONSULTANT")
+    fetch(`${API_BASE_URL}/api/persons/by-role/CONSULTANT`)
       .then((res) => res.json())
       .then(setConsultants)
       .catch((err) => console.error("Error fetching consultants", err));
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:8088/api/persons?role=CUSTOMER")
+    fetch(`${API_BASE_URL}/api/persons?role=CUSTOMER`)
       .then((res) => res.json())
       .then((data) =>
         setCustomers(data.filter((p: any) => p.personRole === "CUSTOMER"))
@@ -101,21 +102,18 @@ export default function NewOrder() {
           return;
         }
 
-        const customerResponse = await fetch(
-          "http://localhost:8088/api/persons",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              firstName: newCustomer.firstName,
-              lastName: newCustomer.lastName,
-              email: newCustomer.email,
-              phoneNumber: newCustomer.phone,
-              address: newCustomer.address,
-              personRole: "CUSTOMER",
-            }),
-          }
-        );
+        const customerResponse = await fetch(`${API_BASE_URL}/api/persons`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: newCustomer.firstName,
+            lastName: newCustomer.lastName,
+            email: newCustomer.email,
+            phoneNumber: newCustomer.phone,
+            address: newCustomer.address,
+            personRole: "CUSTOMER",
+          }),
+        });
 
         if (!customerResponse.ok) throw new Error("Failed to create customer");
 
@@ -123,7 +121,7 @@ export default function NewOrder() {
         finalCustomerId = String(createdCustomer.id);
       }
 
-      const response = await fetch("http://localhost:8088/api/orders", {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
