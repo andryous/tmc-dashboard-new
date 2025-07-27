@@ -61,7 +61,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-muted">
       <img
-        src="src/assets/logo_tmc_landing.png"
+        src="/logo_tmc_landing.png"
         alt="The Moving Company"
         className="w-80 mb-6"
       />
