@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import OrderDetailsModal from "@/components/orders/OrderDetailsModal";
 import DeleteOrderDialog from "@/components/orders/DeleteOrderDialog";
-import PaginationControls from "@/components/ui/pagination/PaginationControls";
 import { getOrders } from "@/services/orderService";
 import type { Order } from "@/types/order";
 import {

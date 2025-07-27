@@ -18,7 +18,6 @@ import type { Person } from "@/types/person";
 import { getCustomers } from "@/services/personService";
 import ArchiveCustomerDialog from "@/components/customers/ArchiveCustomerDialog";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
 
 export default function Customers() {
