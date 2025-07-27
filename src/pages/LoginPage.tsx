@@ -23,6 +23,9 @@ export default function LoginPage() {
     }
   }, [navigate]);
 
+  // Log the API base URL for debugging
+  console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+
   // Send login request to backend
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
