@@ -14,7 +14,7 @@ type Props = {
   order: Order | null; // Order to delete
   open: boolean; // Modal open state
   onOpenChange: (open: boolean) => void; // Function to toggle modal
-  onDeleteSuccess: (id: string) => void; // Callback if deletion is successful
+  onDeleteSuccess: (id: number) => void; // Callback if deletion is successful
 };
 
 // Modal dialog to confirm deletion of an order
