@@ -1,9 +1,12 @@
+// File: src/types/order.ts
+
 import type { Person } from "./person";
+
 export type Order = {
   id: number;
   customer: Person;
   consultant: Person;
-  serviceType: "MOVING" | "PACKING" | "CLEANING"; 
+  serviceType: "MOVING" | "PACKING" | "CLEANING";
   fromAddress: string;
   toAddress: string;
   startDate: string;

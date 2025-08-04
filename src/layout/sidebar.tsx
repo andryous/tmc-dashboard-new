@@ -37,7 +37,7 @@ export function Sidebar() {
         {/* Sidebar links */}
         <nav className="space-y-2">
           <SidebarLink
-            to="/dashboard"
+            to="/statistics"
             icon={LayoutDashboard}
             label="Dashboard"
           />
@@ -56,7 +56,7 @@ export function Sidebar() {
             icon={AlertTriangle}
             label="Pending Actions"
           />
-          <SidebarLink to="/statistics" icon={BarChart} label="Statistics" />
+
           <SidebarLink to="/settings" icon={Settings} label="Settings" />
         </nav>
       </div>

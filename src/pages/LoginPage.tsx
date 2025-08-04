@@ -19,7 +19,7 @@ export default function LoginPage() {
   useEffect(() => {
     const user = localStorage.getItem("tmc_logged_in_consultant");
     if (user) {
-      navigate("/orders");
+      navigate("/statistics");
     }
   }, [navigate]);
 
@@ -47,7 +47,7 @@ export default function LoginPage() {
 
         // Save user in localStorage and navigate
         localStorage.setItem("tmc_logged_in_consultant", user.firstName);
-        navigate("/orders");
+        navigate("/statistics");
       } else {
         // Show error toast if login fails
         toast.error("Invalid credentials. Please try again.");

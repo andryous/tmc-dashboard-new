@@ -10,4 +10,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  server: {
+    host: "0.0.0.0",   // Escucha en todas las interfaces de red
+    port: 5173,        // Puerto fijo
+    strictPort: true,  // No cambia el puerto si está ocupado
+  },
 });

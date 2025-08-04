@@ -19,19 +19,20 @@ import Consultants from "@/pages/consultants";
 import Placeholder from "@/pages/placeholder";
 import ArchivedCustomers from "@/pages/archived-customers";
 import LoginPage from "@/pages/LoginPage";
+import Statistics from "@/pages/statistics";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <Toaster />
       <Routes>
-        {/* Redirección inicial */}
-        <Route index element={<Navigate to="/orders" replace />} />
+        {/* Redirect to statistics page after login */}
+        <Route index element={<Navigate to="/statistics" replace />} />
 
-        {/* Login fuera del layout */}
+        {/* Login route outside of layout */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Todo lo protegido dentro del layout */}
+        {/* Protected routes inside layout */}
         <Route path="/" element={<DashboardLayout />}>
           <Route
             path="dashboard"
@@ -133,7 +134,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             path="statistics"
             element={
               <RequireAuth>
-                <Placeholder title="Statistics" />
+                <Statistics />
               </RequireAuth>
             }
           />
