@@ -189,7 +189,6 @@ export default function EditOrder() {
             </SelectContent>
           </Select>
         </div>
-
         {/* Start date */}
         <div className="space-y-2">
           <Label htmlFor="startDate">Start Date</Label>
@@ -199,7 +198,7 @@ export default function EditOrder() {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            min={today} // Prevent selecting dates in the past
+            // min={today}  // <-- QUITAR ESTA LÍNEA en edición
             required
           />
         </div>

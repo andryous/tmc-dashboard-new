@@ -1,4 +1,4 @@
-// src/pages/Orders.tsx
+// File: src/pages/Orders.tsx
 
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -37,15 +37,21 @@ import {
 } from "@/components/ui/dialog";
 
 export default function Orders() {
+  // Local state for loaded orders
   const [orders, setOrders] = useState<Order[]>([]);
+  // State for loading indicator
   const [isLoading, setIsLoading] = useState(true);
+  // State for error message
   const [error, setError] = useState<string | null>(null);
+  // React Router: Query params
   const [searchParams] = useSearchParams();
   const customerId = searchParams.get("customerId");
   const consultantId = searchParams.get("consultantId");
+  // Search input state (persistent)
   const [searchText, setSearchText] = useState(
     () => localStorage.getItem("orders_searchText") ?? ""
   );
+  // Sorting state for columns
   const [sortField, setSortField] = useState<"startDate" | "endDate" | "id">(
     () => {
       return (
@@ -66,22 +72,24 @@ export default function Orders() {
   const itemsPerPage = 20;
   const navigate = useNavigate();
 
+  // Fetch orders on mount
   useEffect(() => {
     async function fetchData() {
       try {
-        setIsLoading(true);
+        setIsLoading(true); // Show skeletons
         const data = await getOrders();
-        setOrders(data);
-        setError(null);
+        setOrders(data); // Save loaded orders
+        setError(null); // Reset error
       } catch {
         setError("Failed to load orders");
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Hide skeletons
       }
     }
     fetchData();
   }, []);
 
+  // Handle sorting of columns
   function handleSort(field: "startDate" | "endDate" | "id") {
     if (field === sortField) {
       const newDir = sortDirection === "asc" ? "desc" : "asc";
@@ -95,6 +103,7 @@ export default function Orders() {
     }
   }
 
+  // Render arrow icons for column sorting
   function renderSortIcon(field: "startDate" | "endDate" | "id") {
     const active = sortField === field;
     const color = active ? "text-blue-600" : "text-gray-400";
@@ -102,6 +111,7 @@ export default function Orders() {
     return <Icon size={16} className={`ml-1 ${color}`} />;
   }
 
+  // Format status string to readable text
   function formatStatus(status: string) {
     return status
       .toLowerCase()
@@ -109,10 +119,12 @@ export default function Orders() {
       .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  // Format service string for display
   function formatService(service: string) {
     return service.charAt(0).toUpperCase() + service.slice(1).toLowerCase();
   }
 
+  // Get icon by service type
   function getServiceIcon(service: string) {
     switch (service) {
       case "MOVING":
@@ -126,6 +138,7 @@ export default function Orders() {
     }
   }
 
+  // Badge color by status
   function getStatusBadgeVariant(status: string): string {
     switch (status) {
       case "PENDING":
@@ -141,10 +154,12 @@ export default function Orders() {
     }
   }
 
+  // Dialog states for order details and delete dialog
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // Filtered and paginated order list
   const filteredOrders = orders.filter((order) => {
     const matchesCustomerId = customerId
       ? String(order.customer?.id) === customerId
@@ -164,6 +179,7 @@ export default function Orders() {
       order.status?.toLowerCase().includes(lower) ||
       order.note?.toLowerCase().includes(lower);
 
+    // Allow searching by #orderID or #parentOrderID
     if (lower.startsWith("#")) {
       const id = Number(lower.slice(1));
       return (
@@ -186,12 +202,15 @@ export default function Orders() {
 
   return (
     <div className="space-y-6">
+      {/* Page title */}
       <h1 className="text-2xl font-bold">Orders</h1>
 
+      {/* Error message if failed to load */}
       {error && <div className="text-red-600 font-medium">{error}</div>}
 
+      {/* Search bar and create order button */}
       <div className="flex justify-end items-center gap-2">
-        {/* Campo de búsqueda */}
+        {/* Search input */}
         <div className="relative w-[280px]">
           <input
             type="text"
@@ -210,7 +229,7 @@ export default function Orders() {
           )}
         </div>
 
-        {/* Botón crear nueva orden */}
+        {/* Create new order button */}
         <Button asChild>
           <Link
             to="/orders/new"
@@ -221,17 +240,42 @@ export default function Orders() {
         </Button>
       </div>
 
+      {/* --- SKELETON TABLE BLOCK (shows when isLoading === true) --- */}
       {isLoading ? (
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="grid grid-cols-11 gap-4">
-              {[...Array(11)].map((_, j) => (
-                <Skeleton key={j} className="h-4 w-full" />
-              ))}
-            </div>
-          ))}
-        </div>
+        <Table className="border border-gray-200">
+          <TableHeader>
+            <TableRow className="border-b border-blue-200">
+              {/* Table headers, matches real table */}
+              <TableHead>Order ID</TableHead>
+              <TableHead>Parent</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Consultant</TableHead>
+              <TableHead>Service</TableHead>
+              <TableHead>From</TableHead>
+              <TableHead>To</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Note</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* Render 10 skeleton rows with 12 columns, matches layout */}
+            {[...Array(10)].map((_, i) => (
+              <TableRow key={i} className="odd:bg-white even:bg-blue-100">
+                {[...Array(12)].map((_, j) => (
+                  <TableCell key={j}>
+                    {/* Each cell shows a skeleton loading bar */}
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       ) : (
+        // --- ACTUAL ORDERS TABLE (when data loaded) ---
         <>
           <Table className="border border-gray-200">
             <TableHeader>
@@ -263,6 +307,7 @@ export default function Orders() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* Render paginated order rows */}
               {paginatedOrders.map((order) => (
                 <TableRow
                   key={order.id}
@@ -295,6 +340,7 @@ export default function Orders() {
                   </TableCell>
                   <TableCell>{order.note}</TableCell>
                   <TableCell className="space-x-2">
+                    {/* View order details button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -305,6 +351,7 @@ export default function Orders() {
                     >
                       <Search className="w-4 h-4 text-blue-500" />
                     </Button>
+                    {/* Edit order button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -312,6 +359,7 @@ export default function Orders() {
                     >
                       <Pencil className="w-4 h-4 text-blue-500" />
                     </Button>
+                    {/* Delete order button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -328,6 +376,7 @@ export default function Orders() {
             </TableBody>
           </Table>
 
+          {/* Pagination controls */}
           <div className="flex justify-center items-center gap-2 mt-4">
             <Button
               size="sm"
@@ -377,6 +426,7 @@ export default function Orders() {
         </>
       )}
 
+      {/* Dialog for order details */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -397,6 +447,7 @@ export default function Orders() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog for deleting an order */}
       <DeleteOrderDialog
         order={selectedOrder}
         open={isDeleteDialogOpen}
