@@ -11,7 +11,6 @@ import {
   AlertTriangle,
   Users,
   Briefcase,
-  BarChart,
   Settings,
   LogOut,
 } from "lucide-react";

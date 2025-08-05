@@ -11,7 +11,6 @@ import {
 } from "recharts";
 import type { Order } from "@/types/order";
 import { getFullName } from "@/lib/fullName";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TopCustomersChartProps {
   orders: Order[];
