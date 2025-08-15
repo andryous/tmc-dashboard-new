@@ -12,14 +12,14 @@ type Props = {
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phoneNumber: string; // CHANGED: from 'phone' to 'phoneNumber'
     address: string;
   };
   setNewCustomer?: (customer: {
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phoneNumber: string; // CHANGED: from 'phone' to 'phoneNumber'
     address: string;
   }) => void;
   onSuccess?: (createdOrUpdatedCustomer: {
@@ -47,7 +47,7 @@ export default function NewCustomerForm({
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
+    phoneNumber: "", // CHANGED: from 'phone' to 'phoneNumber'
     address: "",
   });
 
@@ -74,7 +74,8 @@ export default function NewCustomerForm({
       return;
     }
     const phoneRegex = /^\+?\d+$/;
-    if (!phoneRegex.test(currentCustomer.phone)) {
+    // CHANGED: from 'currentCustomer.phone' to 'currentCustomer.phoneNumber'
+    if (!phoneRegex.test(currentCustomer.phoneNumber)) {
       toast.error("Please enter a valid phone number.");
       return;
     }
@@ -95,7 +96,8 @@ export default function NewCustomerForm({
         firstName: currentCustomer.firstName,
         lastName: currentCustomer.lastName,
         email: currentCustomer.email,
-        phoneNumber: currentCustomer.phone,
+        // CHANGED: from 'currentCustomer.phone' to 'currentCustomer.phoneNumber'
+        phoneNumber: currentCustomer.phoneNumber,
         address: currentCustomer.address,
         personRole: "CUSTOMER",
       }),
@@ -121,7 +123,7 @@ export default function NewCustomerForm({
         firstName: "",
         lastName: "",
         email: "",
-        phone: "",
+        phoneNumber: "", // CHANGED: from 'phone' to 'phoneNumber'
         address: "",
       });
     }
@@ -155,9 +157,11 @@ export default function NewCustomerForm({
       />
       <Input
         placeholder="Phone"
-        value={currentCustomer.phone}
+        // CHANGED: from 'currentCustomer.phone' to 'currentCustomer.phoneNumber'
+        value={currentCustomer.phoneNumber}
         onChange={(e) =>
-          updateCustomer({ ...currentCustomer, phone: e.target.value })
+          // CHANGED: from 'phone' to 'phoneNumber'
+          updateCustomer({ ...currentCustomer, phoneNumber: e.target.value })
         }
         className="border-blue-500 focus-visible:ring-blue-500"
       />

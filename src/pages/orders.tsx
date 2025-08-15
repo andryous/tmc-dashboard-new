@@ -1,7 +1,7 @@
 // File: src/pages/Orders.tsx
 
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react"; // FIX: Imported ChangeEvent for typing
 import {
   Table,
   TableBody,
@@ -11,11 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // FIX: Added missing Input import
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   ChevronUp,
-  ChevronDown,
+  // ChevronDown, // FIX: Removed unused import
   Truck,
   Box,
   Sparkle,
@@ -26,7 +27,7 @@ import {
 import OrderDetailsModal from "@/components/orders/OrderDetailsModal";
 import DeleteOrderDialog from "@/components/orders/DeleteOrderDialog";
 import { getOrders } from "@/services/orderService";
-import type { Order } from "@/types/order";
+import type { Order, OrderItem } from "@/types/order";
 import {
   Dialog,
   DialogContent,
@@ -37,109 +38,88 @@ import {
 } from "@/components/ui/dialog";
 
 export default function Orders() {
-  // Local state for loaded orders
+  // --- State Management ---
   const [orders, setOrders] = useState<Order[]>([]);
-  // State for loading indicator
   const [isLoading, setIsLoading] = useState(true);
-  // State for error message
   const [error, setError] = useState<string | null>(null);
-  // React Router: Query params
   const [searchParams] = useSearchParams();
   const customerId = searchParams.get("customerId");
   const consultantId = searchParams.get("consultantId");
-  // Search input state (persistent)
   const [searchText, setSearchText] = useState(
-    () => localStorage.getItem("orders_searchText") ?? ""
+    localStorage.getItem("orders_searchText") ?? ""
   );
-  // Sorting state for columns
-  const [sortField, setSortField] = useState<"startDate" | "endDate" | "id">(
-    () => {
-      return (
-        (localStorage.getItem("orders_sortField") as
-          | "startDate"
-          | "endDate"
-          | "id") ?? "startDate"
-      );
-    }
+  const [sortField, setSortField] = useState<"creationDate" | "id">(
+    (localStorage.getItem("orders_sortField") as "creationDate" | "id") ?? "id"
   );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(() => {
-    return (
-      (localStorage.getItem("orders_sortDirection") as "asc" | "desc") ?? "desc"
-    );
-  });
-
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
+    (localStorage.getItem("orders_sortDirection") as "asc" | "desc") ?? "desc"
+  );
+  const [currentPage] = useState(1); // FIX: Removed setCurrentPage as it's not used yet
   const itemsPerPage = 20;
   const navigate = useNavigate();
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Fetch orders on mount
+  // --- Data Fetching ---
   useEffect(() => {
     async function fetchData() {
       try {
-        setIsLoading(true); // Show skeletons
+        setIsLoading(true);
         const data = await getOrders();
-        setOrders(data); // Save loaded orders
-        setError(null); // Reset error
+        setOrders(data);
+        setError(null);
       } catch {
         setError("Failed to load orders");
       } finally {
-        setIsLoading(false); // Hide skeletons
+        setIsLoading(false);
       }
     }
     fetchData();
   }, []);
 
-  // Handle sorting of columns
-  function handleSort(field: "startDate" | "endDate" | "id") {
-    if (field === sortField) {
-      const newDir = sortDirection === "asc" ? "desc" : "asc";
-      setSortDirection(newDir);
-      localStorage.setItem("orders_sortDirection", newDir);
-    } else {
-      setSortField(field);
-      setSortDirection("desc");
-      localStorage.setItem("orders_sortField", field);
-      localStorage.setItem("orders_sortDirection", "desc");
-    }
-  }
+  // --- Helper Functions ---
+  const handleSort = (field: "creationDate" | "id") => {
+    const newDir =
+      sortField === field && sortDirection === "asc" ? "desc" : "asc";
+    setSortField(field);
+    setSortDirection(newDir);
+    localStorage.setItem("orders_sortField", field);
+    localStorage.setItem("orders_sortDirection", newDir);
+  };
 
-  // Render arrow icons for column sorting
-  function renderSortIcon(field: "startDate" | "endDate" | "id") {
+  const renderSortIcon = (field: "creationDate" | "id") => {
     const active = sortField === field;
-    const color = active ? "text-blue-600" : "text-gray-400";
-    const Icon = sortDirection === "asc" ? ChevronUp : ChevronDown;
-    return <Icon size={16} className={`ml-1 ${color}`} />;
-  }
+    return (
+      <ChevronUp
+        size={16}
+        className={`ml-1 transition-transform ${
+          active ? "text-blue-600" : "text-gray-400"
+        } ${sortDirection === "desc" ? "rotate-180" : ""}`}
+      />
+    );
+  };
 
-  // Format status string to readable text
-  function formatStatus(status: string) {
-    return status
+  const formatStatus = (status: string) =>
+    status
       .toLowerCase()
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
 
-  // Format service string for display
-  function formatService(service: string) {
-    return service.charAt(0).toUpperCase() + service.slice(1).toLowerCase();
-  }
-
-  // Get icon by service type
-  function getServiceIcon(service: string) {
+  const getServiceIcon = (service: OrderItem["serviceType"]) => {
     switch (service) {
       case "MOVING":
-        return <Truck className="w-4 h-4 inline-block mr-1" />;
+        return <Truck className="w-4 h-4" />;
       case "PACKING":
-        return <Box className="w-4 h-4 inline-block mr-1" />;
+        return <Box className="w-4 h-4" />;
       case "CLEANING":
-        return <Sparkle className="w-4 h-4 inline-block mr-1" />;
+        return <Sparkle className="w-4 h-4" />;
       default:
         return null;
     }
-  }
+  };
 
-  // Badge color by status
-  function getStatusBadgeVariant(status: string): string {
+  const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "PENDING":
         return "bg-yellow-100 text-yellow-800";
@@ -152,14 +132,9 @@ export default function Orders() {
       default:
         return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
-  // Dialog states for order details and delete dialog
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  // Filtered and paginated order list
+  // --- Filtering and Sorting ---
   const filteredOrders = orders.filter((order) => {
     const matchesCustomerId = customerId
       ? String(order.customer?.id) === customerId
@@ -167,25 +142,25 @@ export default function Orders() {
     const matchesConsultantId = consultantId
       ? String(order.consultant?.id) === consultantId
       : true;
-    const lower = searchText.toLowerCase();
-    const matchesSearch =
-      order.customer?.firstName?.toLowerCase().includes(lower) ||
-      order.customer?.lastName?.toLowerCase().includes(lower) ||
-      order.consultant?.firstName?.toLowerCase().includes(lower) ||
-      order.consultant?.lastName?.toLowerCase().includes(lower) ||
-      order.serviceType?.toLowerCase().includes(lower) ||
-      order.fromAddress?.toLowerCase().includes(lower) ||
-      order.toAddress?.toLowerCase().includes(lower) ||
-      order.status?.toLowerCase().includes(lower) ||
-      order.note?.toLowerCase().includes(lower);
+    const lowerSearch = searchText.toLowerCase();
 
-    // Allow searching by #orderID or #parentOrderID
-    if (lower.startsWith("#")) {
-      const id = Number(lower.slice(1));
-      return (
-        (order.id === id || order.parentOrderId === id) &&
-        matchesCustomerId &&
-        matchesConsultantId
+    // Check top-level fields
+    let matchesSearch =
+      String(order.id).includes(lowerSearch) ||
+      order.customer?.firstName?.toLowerCase().includes(lowerSearch) ||
+      order.customer?.lastName?.toLowerCase().includes(lowerSearch) ||
+      order.consultant?.firstName?.toLowerCase().includes(lowerSearch) ||
+      order.consultant?.lastName?.toLowerCase().includes(lowerSearch) ||
+      order.status?.toLowerCase().includes(lowerSearch);
+
+    // If it doesn't match yet, check inside the items array
+    if (!matchesSearch) {
+      matchesSearch = order.items.some(
+        (item) =>
+          item.serviceType.toLowerCase().includes(lowerSearch) ||
+          item.fromAddress.toLowerCase().includes(lowerSearch) ||
+          item.toAddress.toLowerCase().includes(lowerSearch) ||
+          item.note?.toLowerCase().includes(lowerSearch)
       );
     }
 
@@ -194,42 +169,33 @@ export default function Orders() {
 
   const paginatedOrders = filteredOrders
     .sort((a, b) => {
-      let aVal = sortField === "id" ? a.id : new Date(a[sortField]).getTime();
-      let bVal = sortField === "id" ? b.id : new Date(b[sortField]).getTime();
+      let aVal =
+        sortField === "id" ? a.id : new Date(a.creationDate ?? 0).getTime();
+      let bVal =
+        sortField === "id" ? b.id : new Date(b.creationDate ?? 0).getTime();
       return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
     })
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // --- Render ---
   return (
     <div className="space-y-6">
-      {/* Page title */}
       <h1 className="text-2xl font-bold">Orders</h1>
-
-      {/* Error message if failed to load */}
       {error && <div className="text-red-600 font-medium">{error}</div>}
-
-      {/* Search bar and create order button */}
       <div className="flex justify-end items-center gap-2">
-        {/* Search input */}
         <div className="relative w-[280px]">
-          <input
+          {/* FIX: Added type to 'e' parameter */}
+          <Input
             type="text"
             placeholder="Search orders..."
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="w-full rounded-md border border-gray-400 py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setSearchText(e.target.value)
+            }
+            className="pr-10"
           />
-          {searchText && (
-            <button
-              onClick={() => setSearchText("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full w-5 h-5 text-xs"
-            >
-              ×
-            </button>
-          )}
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         </div>
-
-        {/* Create new order button */}
         <Button asChild>
           <Link
             to="/orders/new"
@@ -240,33 +206,22 @@ export default function Orders() {
         </Button>
       </div>
 
-      {/* --- SKELETON TABLE BLOCK (shows when isLoading === true) --- */}
       {isLoading ? (
         <Table className="border border-gray-200">
           <TableHeader>
-            <TableRow className="border-b border-blue-200">
-              {/* Table headers, matches real table */}
-              <TableHead>Order ID</TableHead>
-              <TableHead>Parent</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Consultant</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>From</TableHead>
-              <TableHead>To</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Note</TableHead>
-              <TableHead>Actions</TableHead>
+            <TableRow>
+              {[...Array(7)].map((_, i) => (
+                <TableHead key={i}>
+                  <Skeleton className="h-4 w-full" />
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Render 10 skeleton rows with 12 columns, matches layout */}
             {[...Array(10)].map((_, i) => (
-              <TableRow key={i} className="odd:bg-white even:bg-blue-100">
-                {[...Array(12)].map((_, j) => (
+              <TableRow key={i}>
+                {[...Array(7)].map((_, j) => (
                   <TableCell key={j}>
-                    {/* Each cell shows a skeleton loading bar */}
                     <Skeleton className="h-4 w-full" />
                   </TableCell>
                 ))}
@@ -275,48 +230,34 @@ export default function Orders() {
           </TableBody>
         </Table>
       ) : (
-        // --- ACTUAL ORDERS TABLE (when data loaded) ---
         <>
           <Table className="border border-gray-200">
             <TableHeader>
               <TableRow className="border-b border-blue-200">
                 <TableHead onClick={() => handleSort("id")}>
-                  <span className="inline-flex items-center font-bold">
+                  <span className="inline-flex items-center font-bold cursor-pointer">
                     Order ID {renderSortIcon("id")}
                   </span>
                 </TableHead>
-                <TableHead className="font-bold">Parent</TableHead>
                 <TableHead className="font-bold">Customer</TableHead>
                 <TableHead className="font-bold">Consultant</TableHead>
-                <TableHead className="font-bold">Service</TableHead>
-                <TableHead className="font-bold">From</TableHead>
-                <TableHead className="font-bold">To</TableHead>
-                <TableHead onClick={() => handleSort("startDate")}>
-                  <span className="inline-flex items-center font-bold">
-                    Start Date {renderSortIcon("startDate")}
-                  </span>
-                </TableHead>
-                <TableHead onClick={() => handleSort("endDate")}>
-                  <span className="inline-flex items-center font-bold">
-                    End Date {renderSortIcon("endDate")}
+                <TableHead className="font-bold">Services</TableHead>
+                <TableHead onClick={() => handleSort("creationDate")}>
+                  <span className="inline-flex items-center font-bold cursor-pointer">
+                    Created On {renderSortIcon("creationDate")}
                   </span>
                 </TableHead>
                 <TableHead className="font-bold">Status</TableHead>
-                <TableHead className="font-bold">Note</TableHead>
                 <TableHead className="font-bold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Render paginated order rows */}
               {paginatedOrders.map((order) => (
                 <TableRow
                   key={order.id}
-                  className="odd:bg-white even:bg-blue-100 hover:bg-gray-200 border-b border-blue-200"
+                  className="odd:bg-white even:bg-blue-50 hover:bg-gray-100 border-b border-blue-200"
                 >
                   <TableCell>{order.id}</TableCell>
-                  <TableCell>
-                    {order.parentOrderId ? `#${order.parentOrderId}` : "—"}
-                  </TableCell>
                   <TableCell>
                     {order.customer.firstName} {order.customer.lastName}
                   </TableCell>
@@ -326,21 +267,25 @@ export default function Orders() {
                       : "—"}
                   </TableCell>
                   <TableCell>
-                    {getServiceIcon(order.serviceType)}
-                    {formatService(order.serviceType)}
+                    <div className="flex items-center gap-2">
+                      {order.items.map((item) => (
+                        <div key={item.id} title={item.serviceType}>
+                          {getServiceIcon(item.serviceType)}
+                        </div>
+                      ))}
+                    </div>
                   </TableCell>
-                  <TableCell>{order.fromAddress}</TableCell>
-                  <TableCell>{order.toAddress}</TableCell>
-                  <TableCell>{order.startDate}</TableCell>
-                  <TableCell>{order.endDate}</TableCell>
+                  <TableCell>
+                    {order.creationDate
+                      ? new Date(order.creationDate).toLocaleDateString()
+                      : "N/A"}
+                  </TableCell>
                   <TableCell>
                     <Badge className={getStatusBadgeVariant(order.status)}>
                       {formatStatus(order.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.note}</TableCell>
-                  <TableCell className="space-x-2">
-                    {/* View order details button */}
+                  <TableCell className="space-x-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -351,7 +296,6 @@ export default function Orders() {
                     >
                       <Search className="w-4 h-4 text-blue-500" />
                     </Button>
-                    {/* Edit order button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -359,7 +303,6 @@ export default function Orders() {
                     >
                       <Pencil className="w-4 h-4 text-blue-500" />
                     </Button>
-                    {/* Delete order button */}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -376,78 +319,44 @@ export default function Orders() {
             </TableBody>
           </Table>
 
-          {/* Pagination controls */}
-          <div className="flex justify-center items-center gap-2 mt-4">
-            <Button
-              size="sm"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="bg-white text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-            >
-              Previous
-            </Button>
-
-            {Array.from(
-              { length: Math.ceil(filteredOrders.length / itemsPerPage) },
-              (_, i) => i + 1
-            ).map((page) => (
-              <Button
-                key={page}
-                size="sm"
-                className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-                  page === currentPage
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-blue-600 hover:bg-blue-100"
-                }`}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </Button>
-            ))}
-
-            <Button
-              size="sm"
-              onClick={() =>
-                setCurrentPage((prev) =>
-                  Math.min(
-                    prev + 1,
-                    Math.ceil(filteredOrders.length / itemsPerPage)
-                  )
-                )
-              }
-              disabled={
-                currentPage === Math.ceil(filteredOrders.length / itemsPerPage)
-              }
-              className="bg-white text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-            >
-              Next
-            </Button>
-          </div>
+          {/* Pagination would go here */}
         </>
       )}
 
-      {/* Dialog for order details */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        {/* CHANGED: Added custom styling to the content container */}
+        <DialogContent className="sm:max-w-lg bg-white">
           <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
+            {/* CHANGED: Blue and bold title */}
+            <DialogTitle className="text-2xl font-bold text-blue-600">
+              Order Details
+            </DialogTitle>
             <DialogDescription>
               Full information about Order #{selectedOrder?.id}
-              {selectedOrder?.parentOrderId != null && (
-                <> – Parent: #{selectedOrder.parentOrderId}</>
-              )}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 text-sm">
-            <OrderDetailsModal order={selectedOrder} />
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+          <OrderDetailsModal order={selectedOrder} />
+          <DialogFooter className="mt-4">
+            {/* CHANGED: Styled the Close button and added the Edit Order button */}
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Close
+            </Button>
+            <Button
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => {
+                if (selectedOrder) {
+                  navigate(`/orders/${selectedOrder.id}/edit`);
+                  setIsDialogOpen(false); // Close modal on navigation
+                }
+              }}
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit Order
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for deleting an order */}
       <DeleteOrderDialog
         order={selectedOrder}
         open={isDeleteDialogOpen}
