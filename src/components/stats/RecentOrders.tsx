@@ -9,21 +9,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format } from "date-fns";
-import { getFullName } from "@/lib/fullName";
+import { Badge } from "@/components/ui/badge"; // Added Badge for consistency
 
 interface RecentOrdersProps {
-  orders: Order[];
+  orders: Order[]; // This component receives the 5 most recent orders
 }
 
 export default function RecentOrders({ orders }: RecentOrdersProps) {
-  // Sort and get the last 5 orders by startDate
-  const recent = [...orders]
-    .sort(
-      (a, b) =>
-        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    )
-    .slice(0, 5);
+  // No need to sort here anymore, the parent component (statistics.tsx) already does it.
+
+  // Helper to format the status text
+  const formatStatus = (status: string) =>
+    status
+      .toLowerCase()
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // Helper to get consistent badge colors
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "IN_PROGRESS":
+        return "bg-blue-100 text-blue-800";
+      case "COMPLETED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return (
     <Table>
@@ -33,27 +49,34 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
           <TableHead className="font-semibold">Customer</TableHead>
           <TableHead className="font-semibold">Consultant</TableHead>
           <TableHead className="font-semibold">Status</TableHead>
-          <TableHead className="font-semibold">Date</TableHead>
+          <TableHead className="font-semibold">Created On</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {recent.map((order) => (
+        {orders.map((order) => (
           <TableRow key={order.id}>
-            <TableCell>{order.id}</TableCell>
+            <TableCell>#{order.id}</TableCell>
             <TableCell>
-              {order.customer ? getFullName(order.customer) : "-"}
+              {order.customer
+                ? `${order.customer.firstName} ${order.customer.lastName}`
+                : "—"}
             </TableCell>
             <TableCell>
-              {order.consultant ? getFullName(order.consultant) : "-"}
+              {order.consultant
+                ? `${order.consultant.firstName} ${order.consultant.lastName}`
+                : "—"}
             </TableCell>
             <TableCell>
-              {order.status
-                .toLowerCase() // Pone todo en minúsculas
-                .replace(/_/g, " ") // Cambia _ por espacio
-                .replace(/^./, (c) => c.toUpperCase())}{" "}
+              {/* Using the consistent badge style */}
+              <Badge className={getStatusBadgeVariant(order.status)}>
+                {formatStatus(order.status)}
+              </Badge>
             </TableCell>
             <TableCell>
-              {format(new Date(order.startDate), "MMM d, yyyy")}
+              {/* CHANGED: Using creationDate which exists on the Order object */}
+              {order.creationDate
+                ? new Date(order.creationDate).toLocaleDateString()
+                : "—"}
             </TableCell>
           </TableRow>
         ))}

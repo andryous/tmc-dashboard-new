@@ -1,97 +1,73 @@
 // File: src/components/stats/StatsCards.tsx
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Order } from "@/types/order";
-import { getFullName } from "@/lib/fullName";
+// CHANGED: Import our new summary type
+import type { StatisticsSummary } from "@/services/statisticsService";
+import { DollarSign, Hourglass, ListChecks, Truck } from "lucide-react"; // ADDED: More icons for context
 
+// CHANGED: The component now only needs the summary object
 interface StatsCardsProps {
-  orders: Order[];
-  currentUserName: string;
+  summary: StatisticsSummary;
 }
 
-export default function StatsCards({
-  orders,
-  currentUserName,
-}: StatsCardsProps) {
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === "PENDING").length;
-  const inProgressOrders = orders.filter(
-    (o) => o.status === "IN_PROGRESS"
-  ).length;
-  const completedOrders = orders.filter((o) => o.status === "COMPLETED").length;
-  const cancelledOrders = orders.filter((o) => o.status === "CANCELLED").length;
-  const revenue = orders.length * 50;
+export default function StatsCards({ summary }: StatsCardsProps) {
+  // REMOVED: All calculation logic is now gone. The backend does the work!
 
-  const johnOrders = orders.filter((o) => {
-    if (!o.consultant || !currentUserName) return false;
-    const fullName = getFullName(o.consultant);
-    return (
-      fullName.toLowerCase().trim() === currentUserName.toLowerCase().trim()
-    );
-  }).length;
-
-  const cardClass = "border border-gray-200 text-center";
+  const cardClass = "border border-blue-200 shadow-sm text-center";
+  const iconClass = "mx-auto h-8 w-8 text-blue-500 mb-2";
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+    // CHANGED: Grid layout is more responsive
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* CHANGED: All cards now read directly from the summary prop */}
       <Card className={cardClass}>
         <CardHeader>
+          <ListChecks className={iconClass} />
           <CardTitle className="text-md font-semibold">Total Orders</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-blue-600">{totalOrders}</p>
+          <p className="text-4xl font-bold text-blue-600">
+            {summary.totalOrders}
+          </p>
         </CardContent>
       </Card>
+
       <Card className={cardClass}>
         <CardHeader>
-          <CardTitle className="text-md font-semibold">Pending</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-4xl font-bold text-blue-600">{pendingOrders}</p>
-        </CardContent>
-      </Card>
-      <Card className={cardClass}>
-        <CardHeader>
+          <Truck className={iconClass} />
           <CardTitle className="text-md font-semibold">In Progress</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-blue-600">{inProgressOrders}</p>
+          <p className="text-4xl font-bold text-blue-600">
+            {summary.ordersInProgress}
+          </p>
         </CardContent>
       </Card>
+
       <Card className={cardClass}>
         <CardHeader>
-          <CardTitle className="text-md font-semibold">Completed</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-4xl font-bold text-blue-600">{completedOrders}</p>
-        </CardContent>
-      </Card>
-      <Card className={cardClass}>
-        <CardHeader>
-          <CardTitle className="text-md font-semibold">Cancelled</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-4xl font-bold text-blue-600">{cancelledOrders}</p>
-        </CardContent>
-      </Card>
-      <Card className={cardClass}>
-        <CardHeader>
+          <Hourglass className={iconClass} />
           <CardTitle className="text-md font-semibold">
-            Estimated Revenue
+            Pending Services
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-blue-600">${revenue}</p>
+          <p className="text-4xl font-bold text-blue-600">
+            {summary.pendingServices}
+          </p>
         </CardContent>
       </Card>
+
       <Card className={cardClass}>
         <CardHeader>
-          <CardTitle className="text-md font-semibold">
-            Your orders {currentUserName}
-          </CardTitle>
+          <DollarSign className={iconClass} />
+          <CardTitle className="text-md font-semibold">Est. Revenue</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold text-blue-600">{johnOrders}</p>
+          {/* Formatting the revenue to look like currency */}
+          <p className="text-4xl font-bold text-blue-600">
+            ${summary.estimatedTotalRevenue.toLocaleString()}
+          </p>
         </CardContent>
       </Card>
     </div>

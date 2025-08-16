@@ -8,43 +8,52 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
-import type { Order } from "@/types/order";
-import { format, subWeeks, eachWeekOfInterval } from "date-fns";
 
+// CHANGED: The component now expects the pre-calculated monthly data
 interface OrdersBarChartProps {
-  orders: Order[];
+  data: Record<string, number>;
 }
 
-export default function OrdersBarChart({ orders }: OrdersBarChartProps) {
-  // Get current date and range for past 4 weeks
-  const now = new Date();
-  const weeks = eachWeekOfInterval({
-    start: subWeeks(now, 3),
-    end: now,
-  });
+export default function OrdersBarChart({ data }: OrdersBarChartProps) {
+  // REMOVED: All complex date-fns logic and filtering is now gone.
 
-  // Build data grouped by week
-  const data = weeks.map((weekStart) => {
-    const weekLabel = format(weekStart, "MMM d");
-    const count = orders.filter((order) => {
-      const date = new Date(order.startDate);
-      return date >= weekStart && date < subWeeks(weekStart, -1);
-    }).length;
-    return { week: weekLabel, count };
-  });
+  // CHANGED: We just transform the data from the backend into the array format Recharts needs.
+  const chartData = Object.entries(data).map(([month, count]) => ({
+    name: month,
+    Orders: count, // Use "Orders" as the key for a nice tooltip/legend label
+  }));
+
+  // Show a message if there's no data to display
+  if (chartData.length === 0) {
+    return (
+      <div className="text-center text-gray-500">
+        No monthly data to display.
+      </div>
+    );
+  }
 
   return (
-    <>
-      <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="week" />
-          <YAxis allowDecimals={false} />
-          <Tooltip />
-          <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </>
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        {/* CHANGED: dataKey is now 'name' to match our new data structure */}
+        <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+        <YAxis
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          allowDecimals={false}
+        />
+        <Tooltip
+          cursor={{ fill: "#f3f4f6" }} // light gray background on hover
+          contentStyle={{ borderRadius: "0.5rem", border: "1px solid #e5e7eb" }}
+        />
+        <Legend verticalAlign="top" height={36} />
+        {/* CHANGED: dataKey is now 'Orders' to match our new data structure */}
+        <Bar dataKey="Orders" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
