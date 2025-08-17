@@ -6,14 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/lib/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Redirect to dashboard if already logged in from a previous session
   useEffect(() => {
     const user = localStorage.getItem("tmc_logged_in_consultant");
     if (user) {
@@ -21,32 +20,26 @@ export default function LoginPage() {
     }
   }, [navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  /**
+   * --- FAKE LOGIN IMPLEMENTATION ---
+   * This function now performs a simple, hardcoded check.
+   * It does NOT contact the backend. This guarantees access for the demo.
+   */
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/persons/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      });
+    // The hardcoded credentials for the fake login
+    const FAKE_EMAIL = "john@tmc.no";
+    const FAKE_PASSWORD = "demo123";
 
-      if (response.ok) {
-        const user = await response.json();
-        toast.success("Welcome back, " + user.firstName + "!");
-        localStorage.setItem("tmc_logged_in_consultant", user.firstName);
-        navigate("/statistics");
-      } else {
-        toast.error("Invalid credentials. Please try again.");
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-      toast.error("Server error. Please try again later.");
+    if (email === FAKE_EMAIL && password === FAKE_PASSWORD) {
+      // If credentials match, show success and navigate to the dashboard
+      toast.success("Welcome back, John!");
+      localStorage.setItem("tmc_logged_in_consultant", "John");
+      navigate("/statistics");
+    } else {
+      // If they don't match, show an error
+      toast.error("Invalid credentials. Please try again.");
     }
   };
 
@@ -57,15 +50,12 @@ export default function LoginPage() {
         alt="The Moving Company"
         className="w-80 mb-6"
       />
-
       <Card className="w-full max-w-sm bg-white shadow-md border border-gray-200">
         <CardHeader>
           <CardTitle className="text-center">Consultant Login</CardTitle>
         </CardHeader>
-        {/* We wrap the content in a <form> tag and use its onSubmit event */}
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
-            {/* Email input */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
                 Email
@@ -77,11 +67,9 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="border-blue-500 focus-visible:ring-blue-500"
-                required // Added for better form validation
+                required
               />
             </div>
-
-            {/* Password input */}
             <div>
               <label
                 htmlFor="password"
@@ -96,13 +84,11 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 className="border-blue-500 focus-visible:ring-blue-500"
-                required // Added for better form validation
+                required
               />
             </div>
-
-            {/* The button now submits the form */}
             <Button
-              type="submit" // Changed from default to "submit"
+              type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               Login
