@@ -32,6 +32,15 @@ export default function Customers() {
   const itemsPerPage = 15;
   const navigate = useNavigate();
 
+  // ADDED: State to handle the creation of a new customer
+  const [newCustomer, setNewCustomer] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "", // Use phoneNumber to be consistent
+    address: "",
+  });
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -97,10 +106,9 @@ export default function Customers() {
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <>
+    <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Customers</h1>
-
         <div className="flex gap-2 items-center">
           <div className="relative w-[280px]">
             <input
@@ -122,19 +130,24 @@ export default function Customers() {
               </button>
             )}
           </div>
-
           <Button
             className="bg-blue-600 text-white hover:bg-blue-700"
             onClick={() => navigate("/archived-customers")}
           >
             Archived Customers
           </Button>
-
           <Button
             className="bg-blue-600 text-white hover:bg-blue-700"
             onClick={() => {
               setShowNewCustomerForm((prev) => !prev);
               setEditingCustomer(null);
+              setNewCustomer({
+                firstName: "",
+                lastName: "",
+                email: "",
+                phoneNumber: "",
+                address: "",
+              });
             }}
           >
             {showNewCustomerForm ? "Hide Form" : "New Customer"}
@@ -146,49 +159,41 @@ export default function Customers() {
         <div className="mb-6 mt-4 flex justify-center">
           <div className="w-full max-w-xl">
             <NewCustomerForm
-              {...(editingCustomer
-                ? {
-                    newCustomer: {
+              // CHANGED: Logic now correctly passes phoneNumber to the child component
+              newCustomer={
+                editingCustomer
+                  ? {
                       firstName: editingCustomer.firstName,
                       lastName: editingCustomer.lastName,
                       email: editingCustomer.email,
-                      phone: editingCustomer.phoneNumber,
+                      phoneNumber: editingCustomer.phoneNumber,
                       address: editingCustomer.address,
-                    },
-                    setNewCustomer: (updated) =>
+                    }
+                  : newCustomer
+              }
+              setNewCustomer={
+                editingCustomer
+                  ? (updated) =>
                       setEditingCustomer((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              ...updated,
-                              phoneNumber: updated.phone,
-                            }
-                          : null
-                      ),
-                    customerId: editingCustomer.id,
-                  }
-                : {})}
+                        prev ? { ...prev, ...updated } : null
+                      )
+                  : setNewCustomer
+              }
+              customerId={editingCustomer?.id}
               showSubmitButton={true}
               onSuccess={(savedCustomer) => {
+                const customerWithRole = {
+                  ...savedCustomer,
+                  personRole: "CUSTOMER" as const,
+                };
                 if (editingCustomer) {
                   setCustomers((prev) =>
                     prev.map((c) =>
-                      c.id === savedCustomer.id
-                        ? {
-                            ...savedCustomer,
-                            personRole: "CUSTOMER" as const,
-                          }
-                        : c
+                      c.id === savedCustomer.id ? customerWithRole : c
                     )
                   );
                 } else {
-                  setCustomers((prev) => [
-                    ...prev,
-                    {
-                      ...savedCustomer,
-                      personRole: "CUSTOMER" as const,
-                    },
-                  ]);
+                  setCustomers((prev) => [...prev, customerWithRole]);
                 }
                 setShowNewCustomerForm(false);
                 setEditingCustomer(null);
@@ -201,8 +206,8 @@ export default function Customers() {
       {isLoading ? (
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="grid grid-cols-5 gap-4">
-              {[...Array(5)].map((_, j) => (
+            <div key={i} className="grid grid-cols-6 gap-4">
+              {[...Array(6)].map((_, j) => (
                 <Skeleton key={j} className="h-4 w-full" />
               ))}
             </div>
@@ -225,7 +230,9 @@ export default function Customers() {
                 <TableHead className="font-bold">Email</TableHead>
                 <TableHead className="font-bold">Phone</TableHead>
                 <TableHead className="font-bold">Role</TableHead>
-                <TableHead className="font-bold">Actions</TableHead>
+                <TableHead className="font-bold text-right pr-4">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -245,7 +252,7 @@ export default function Customers() {
                       Customer
                     </Badge>
                   </TableCell>
-                  <TableCell className="flex flex-wrap gap-2">
+                  <TableCell className="flex flex-wrap gap-2 justify-end">
                     <Button
                       variant="outline"
                       size="sm"
@@ -324,6 +331,6 @@ export default function Customers() {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

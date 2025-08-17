@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner"; // ADDED: Import toast
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
+  DialogTitle, // This component is now used
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -57,11 +57,9 @@ export default function EditOrderItemModal({
     setEditedItem(updatedItem);
   };
 
-  // CHANGED: Added validation logic to the save handler
   const handleSave = () => {
     if (!editedItem) return;
 
-    // --- Validation Block ---
     if (!editedItem.fromAddress.trim()) {
       toast.error("'From Address' is required.");
       return;
@@ -74,19 +72,19 @@ export default function EditOrderItemModal({
       toast.error("'End Date' is required.");
       return;
     }
-    // --- End of Validation ---
 
     onSave(editedItem);
   };
 
-  const isNewItem = item.id > 1_000_000;
+  // REMOVED: The 'isNewItem' variable is no longer needed as we now use the 'mode' prop.
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] bg-white">
         <DialogHeader>
+          {/* CORRECTED: The DialogTitle component is now correctly used */}
           <DialogTitle>
-            {isNewItem
+            {mode === "add"
               ? "Add New Service Item"
               : `Edit Service Item #${item.id}`}
           </DialogTitle>
